@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Regent Properties - Garage Access</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%236366f1'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>R</text></svg>">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #09090b;
+      --bg-secondary: #111114;
+      --bg-card: #18181b;
+      --bg-elevated: #1e1e23;
+      --accent: #6366f1;
+      --accent-hover: #7c7ff7;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --accent-glow-strong: rgba(99, 102, 241, 0.5);
+      --success: #22c55e;
+      --success-glow: rgba(34, 197, 94, 0.25);
+      --danger: #ef4444;
+      --warning: #eab308;
+      --text: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-accent: rgba(99, 102, 241, 0.2);
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Ambient Background */
+    .ambient {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .ambient::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      left: -20%;
+      width: 140%;
+      height: 140%;
+      background: radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+      animation: ambientShift 20s ease-in-out infinite alternate;
+    }
+
+    .ambient::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    @keyframes ambientShift {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(2%, -2%) rotate(1deg); }
+    }
+
+    /* Layout */
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes ringPulse {
+      0% { box-shadow: 0 0 0 0 var(--accent-glow-strong); }
+      70% { box-shadow: 0 0 0 20px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ===== LOGIN SCREEN ===== */
+    .login-wrap {
+      width: 100%;
+      max-width: 400px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .brand-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 40px var(--accent-glow);
+      transition: transform 0.3s ease;
+    }
+
+    .brand-icon:hover { transform: scale(1.05) rotate(-2deg); }
+
+    .brand-icon svg { width: 32px; height: 32px; }
+
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      margin-bottom: 4px;
+    }
+
+    .brand p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+    }
+
+    .alert {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .field { margin-bottom: 20px; }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--bg-primary);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .input::placeholder { color: var(--text-muted); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 13px 20px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 2px 12px var(--accent-glow);
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-accent:active { transform: translateY(0); }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* ===== DASHBOARD ===== */
+    .dashboard {
+      max-width: 440px;
+      width: 100%;
+      padding: 16px 0;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .topbar h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .btn-ghost {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-ghost:hover {
+      border-color: rgba(239,68,68,0.4);
+      color: var(--danger);
+    }
+
+    /* Status Pill */
+    .status-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.waiting { background: var(--warning); }
+
+    /* ===== GARAGE CONTROL CARD ===== */
+    .control-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 40px 24px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    /* Garage Door Animation */
+    .door-visual {
+      width: 140px;
+      height: 110px;
+      margin: 0 auto 24px;
+      position: relative;
+    }
+
+    .door-frame {
+      width: 100%;
+      height: 100%;
+      border: 2px solid var(--text-muted);
+      border-radius: 8px 8px 0 0;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.4s;
+    }
+
+    .door-frame.active { border-color: var(--accent); }
+
+    .door-panel {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--bg-elevated) 0px,
+        var(--bg-elevated) 18px,
+        var(--text-muted) 18px,
+        var(--text-muted) 19px
+      );
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .door-panel.opening {
+      transform: translateY(-95%);
+    }
+
+    .door-handle {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 4px;
+      background: var(--text-muted);
+      border-radius: 2px;
+      z-index: 2;
+      transition: opacity 0.4s;
+    }
+
+    .door-panel.opening .door-handle { opacity: 0; }
+
+    .door-ground {
+      width: 160px;
+      height: 3px;
+      margin: 0 auto;
+      background: var(--text-muted);
+      border-radius: 0 0 4px 4px;
+      opacity: 0.3;
+    }
+
+    .control-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+
+    .control-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    /* Big Button */
+    .btn-garage {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 260px;
+      padding: 16px 28px;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-garage svg { width: 18px; height: 18px; fill: currentColor; }
+
+    .btn-open {
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      color: white;
+      box-shadow: 0 6px 24px var(--accent-glow);
+    }
+
+    .btn-open:hover:not(:disabled) {
+      box-shadow: 0 8px 32px var(--accent-glow-strong);
+      transform: translateY(-2px);
+    }
+
+    .btn-open:active:not(:disabled) { transform: translateY(0); }
+
+    .btn-garage:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-garage.sending {
+      background: linear-gradient(135deg, #7c3aed, var(--accent));
+    }
+
+    .btn-garage.sending::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .btn-garage.done {
+      background: linear-gradient(135deg, var(--success), #16a34a);
+      box-shadow: 0 6px 24px var(--success-glow);
+    }
+
+    /* Result Toast */
+    .toast {
+      margin-top: 20px;
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.3s;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .toast-ok {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.15);
+      color: var(--success);
+    }
+
+    .toast-err {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    /* ===== ACTIVITY LOG ===== */
+    .log-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .log-header {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+    }
+
+    .log-item + .log-item {
+      border-top: 1px solid var(--border);
+    }
+
+    .log-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .log-dot-ok { background: var(--success); }
+    .log-dot-err { background: var(--danger); }
+
+    .log-label {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .log-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .log-empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 12px;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ===== CONFIRM MODAL ===== */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      max-width: 320px;
+      width: 100%;
+      text-align: center;
+      transform: scale(0.92);
+      transition: transform 0.25s;
+    }
+
+    .overlay.open .modal { transform: scale(1); }
+
+    .modal-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid var(--border-accent);
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-icon svg { width: 24px; height: 24px; fill: var(--accent); }
+
+    .modal h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .modal p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-actions .btn { flex: 1; padding: 11px; font-size: 13px; }
+
+    .btn-flat {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .btn-flat:hover { border-color: var(--text-muted); }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .control-card { padding: 32px 18px; }
+      .door-visual { width: 120px; height: 94px; }
+      .card { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient"></div>
+
+  <div class="app">
+    <!-- ===== LOGIN ===== -->
+    <div id="loginView" class="screen">
+      <div class="login-wrap">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h1>Regent Properties</h1>
+          <p>Secure Garage Access</p>
+        </div>
+        <div class="card">
+          <div id="loginAlert" class="alert alert-error hidden"></div>
+          <form id="loginForm">
+            <div class="field">
+              <label for="pw">Access Code</label>
+              <input type="password" id="pw" class="input" placeholder="Enter your access code" autocomplete="current-password" autofocus>
+            </div>
+            <button type="submit" class="btn btn-accent" id="loginBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+              </svg>
+              Authenticate
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="dashView" class="screen hidden">
+      <div class="dashboard">
+        <div class="topbar">
+          <h2>Garage Control</h2>
+          <button class="btn-ghost" id="logoutBtn">Sign Out</button>
+        </div>
+
+        <div class="status-pill">
+          <span id="statusDot" class="status-dot waiting"></span>
+          <span id="statusLabel">Ready</span>
+        </div>
+
+        <div class="control-card">
+          <div class="door-visual">
+            <div id="doorFrame" class="door-frame">
+              <div id="doorPanel" class="door-panel">
+                <div class="door-handle"></div>
+              </div>
+            </div>
+            <div class="door-ground"></div>
+          </div>
+
+          <h3 class="control-title">Garage Door</h3>
+          <p class="control-sub">Tap the button to send an open command</p>
+
+          <button id="garageBtn" class="btn-garage btn-open">
+            <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
+            Open Garage
+          </button>
+
+          <div id="toast" class="toast"></div>
+        </div>
+
+        <div class="log-card">
+          <div class="log-header">Recent Activity</div>
+          <div id="logList"><p class="log-empty">No activity yet</p></div>
+        </div>
+
+        <div class="footer">Regent Properties &middot; Secure Access</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirmOverlay" class="overlay">
+    <div class="modal">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
+      </div>
+      <h3>Open Garage Door?</h3>
+      <p>This will send an open command to the garage.</p>
+      <div class="modal-actions">
+        <button class="btn btn-flat" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-accent" onclick="doOpen()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== CONFIG =====
+    // SHA-256 hash of the access password (default: "regent2026")
+    // To change: run in browser console: crypto.subtle.digest('SHA-256', new TextEncoder().encode('YOUR_PASSWORD')).then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+    const PASSWORD_HASH = '096fdb3d705113046663c019d57d82c14191fd4b37e9efb1152a7cc39fb5ca9f';
+
+    // Backend API URL - set this to your backend server if running the full-stack version
+    // Leave empty for standalone mode (logs actions locally only)
+    const API_URL = '';
+
+    // ===== STATE =====
+    let authenticated = false;
+    const activityLog = JSON.parse(localStorage.getItem('garageLog') || '[]');
+
+    // ===== AUTH =====
+    async function hashPassword(pw) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+      return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+
+    function showDash() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('dashView').classList.remove('hidden');
+      renderLog();
+      updateStatus();
+    }
+
+    function showLogin() {
+      document.getElementById('dashView').classList.add('hidden');
+      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('pw').value = '';
+    }
+
+    // Check session
+    (function init() {
+      if (sessionStorage.getItem('authed') === '1') {
+        authenticated = true;
+        showDash();
+      }
+    })();
+
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pw = document.getElementById('pw').value;
+      const alert = document.getElementById('loginAlert');
+      const btn = document.getElementById('loginBtn');
+
+      if (!pw) return;
+
+      btn.disabled = true;
+      alert.classList.add('hidden');
+
+      const hash = await hashPassword(pw);
+      if (hash === PASSWORD_HASH) {
+        authenticated = true;
+        sessionStorage.setItem('authed', '1');
+        showDash();
+      } else {
+        alert.textContent = 'Invalid access code';
+        alert.classList.remove('hidden');
+        document.getElementById('pw').value = '';
+        document.getElementById('pw').focus();
+      }
+
+      btn.disabled = false;
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      authenticated = false;
+      sessionStorage.removeItem('authed');
+      showLogin();
+    });
+
+    // ===== GARAGE CONTROL =====
+    document.getElementById('garageBtn').addEventListener('click', () => {
+      document.getElementById('confirmOverlay').classList.add('open');
+    });
+
+    function closeModal() {
+      document.getElementById('confirmOverlay').classList.remove('open');
+    }
+
+    async function doOpen() {
+      closeModal();
+
+      const btn = document.getElementById('garageBtn');
+      const toast = document.getElementById('toast');
+      const frame = document.getElementById('doorFrame');
+      const panel = document.getElementById('doorPanel');
+
+      // Sending state
+      btn.disabled = true;
+      btn.classList.add('sending');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A8 8 0 0012 4zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A8 8 0 0012 20v3l4-4-4-4v3z"/></svg> Sending...';
+      frame.classList.add('active');
+      toast.classList.remove('show');
+
+      let success = false;
+      let msg = '';
+
+      try {
+        if (API_URL) {
+          // Full-stack mode: call the backend
+          const res = await fetch(API_URL + '/api/garage/open', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+          });
+          const data = await res.json();
+          success = data.success;
+          msg = data.message || (success ? 'Command sent.' : 'Failed.');
+        } else {
+          // Standalone mode: simulate the action
+          await new Promise(r => setTimeout(r, 1500));
+          success = true;
+          msg = 'Open command logged. Connect a backend to control STRATIS.';
+        }
+      } catch (err) {
+        success = false;
+        msg = 'Connection error: ' + err.message;
+      }
+
+      // Log
+      const entry = {
+        action: 'open',
+        time: new Date().toISOString(),
+        success
+      };
+      activityLog.unshift(entry);
+      if (activityLog.length > 50) activityLog.length = 50;
+      localStorage.setItem('garageLog', JSON.stringify(activityLog));
+
+      // Animate door
+      if (success) {
+        panel.classList.add('opening');
+        btn.classList.remove('sending');
+        btn.classList.add('done');
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Sent';
+        toast.className = 'toast toast-ok show';
+        toast.textContent = msg;
+      } else {
+        btn.classList.remove('sending');
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
+        toast.className = 'toast toast-err show';
+        toast.textContent = msg;
+      }
+
+      renderLog();
+
+      // Reset after 4s
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.className = 'btn-garage btn-open';
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
+        frame.classList.remove('active');
+        panel.classList.remove('opening');
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    // ===== STATUS =====
+    function updateStatus() {
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('statusLabel');
+      if (API_URL) {
+        dot.classList.remove('waiting');
+        label.textContent = 'Connected';
+      } else {
+        dot.classList.add('waiting');
+        label.textContent = 'Standalone Mode';
+      }
+    }
+
+    // ===== LOG =====
+    function renderLog() {
+      const el = document.getElementById('logList');
+      const items = activityLog.slice(0, 10);
+      if (items.length === 0) {
+        el.innerHTML = '<p class="log-empty">No activity yet</p>';
+        return;
+      }
+      el.innerHTML = items.map(e => {
+        const d = new Date(e.time);
+        const t = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const date = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        return `<div class="log-item">
+          <span class="log-dot ${e.success ? 'log-dot-ok' : 'log-dot-err'}"></span>
+          <span class="log-label">Garage ${e.action}${e.success ? '' : ' (failed)'}</span>
+          <span class="log-time">${date} ${t}</span>
+        </div>`;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

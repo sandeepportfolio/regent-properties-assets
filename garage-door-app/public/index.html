@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regent Properties - Garage Access</title>
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a2e;
+      --bg-card-hover: #1f1f35;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --accent-light: #818cf8;
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.3);
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.3);
+      --warning: #f59e0b;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border: rgba(99, 102, 241, 0.15);
+      --border-subtle: rgba(255, 255, 255, 0.06);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08), transparent 50%);
+      z-index: 0;
+      animation: slowPulse 8s ease-in-out infinite;
+    }
+
+    @keyframes slowPulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* Login Screen */
+    .screen {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .hidden { display: none !important; }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
+
+    .logo-icon svg {
+      width: 36px;
+      height: 36px;
+      fill: white;
+    }
+
+    .logo-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .logo-subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      backdrop-filter: blur(20px);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 16px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .error-msg {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    /* Dashboard */
+    .dashboard {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      margin-bottom: 16px;
+    }
+
+    .dash-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-logout:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* Status Card */
+    .status-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .status-ready {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Garage Control */
+    .garage-control {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 24px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .garage-icon-container {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 28px;
+    }
+
+    .garage-icon-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      transition: all 0.4s ease;
+    }
+
+    .garage-icon-ring.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 40px var(--accent-glow);
+    }
+
+    .garage-icon-inner {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.4s ease;
+    }
+
+    .garage-icon-inner svg {
+      width: 48px;
+      height: 48px;
+      fill: var(--text-secondary);
+      transition: all 0.4s ease;
+    }
+
+    .garage-icon-inner.active svg {
+      fill: var(--accent-light);
+    }
+
+    .garage-label {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .garage-sublabel {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .btn-garage {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 280px;
+      padding: 18px 32px;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-garage-open {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: white;
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
+
+    .btn-garage-open:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px var(--accent-glow);
+    }
+
+    .btn-garage-open:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-garage:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-garage svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Processing animation */
+    .btn-garage.processing {
+      background: linear-gradient(135deg, #8b5cf6, var(--accent));
+    }
+
+    .btn-garage.processing::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      to { transform: translateX(100%); }
+    }
+
+    /* Success state */
+    .btn-garage.success {
+      background: linear-gradient(135deg, var(--success), #059669);
+      box-shadow: 0 8px 32px var(--success-glow);
+    }
+
+    /* Result Message */
+    .result-message {
+      margin-top: 20px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+
+    .result-message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .result-success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .result-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    /* Activity Log */
+    .log-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .log-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .log-entry {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .log-dot.success { background: var(--success); }
+    .log-dot.pending { background: var(--warning); }
+    .log-dot.error { background: var(--danger); }
+
+    .log-text {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .log-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .log-empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 20px;
+    }
+
+    /* Footer */
+    .dash-footer {
+      text-align: center;
+      padding: 20px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .garage-control { padding: 30px 16px; }
+      .garage-icon-container { width: 120px; height: 120px; }
+      .card { padding: 24px 20px; }
+    }
+
+    /* Keypad Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .confirm-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 340px;
+      width: 90%;
+      text-align: center;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .confirm-card {
+      transform: scale(1);
+    }
+
+    .confirm-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .confirm-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-confirm {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-cancel {
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .btn-cancel:hover {
+      border-color: var(--text-muted);
+    }
+
+    .btn-confirm-action {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: white;
+    }
+
+    .btn-confirm-action:hover {
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <!-- Login Screen -->
+  <div id="loginScreen" class="screen">
+    <div class="login-container">
+      <div class="logo-section">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.83-3.4 9.36-7 10.58-3.6-1.22-7-5.75-7-10.58V6.3l7-3.12z"/></svg>
+        </div>
+        <h1 class="logo-title">Regent Properties</h1>
+        <p class="logo-subtitle">Secure Garage Access Portal</p>
+      </div>
+      <div class="card">
+        <div id="loginError" class="error-msg hidden"></div>
+        <form id="loginForm">
+          <div class="form-group">
+            <label class="form-label">Access Code</label>
+            <input
+              type="password"
+              id="passwordInput"
+              class="form-input"
+              placeholder="Enter your access code"
+              autocomplete="current-password"
+              autofocus
+            />
+          </div>
+          <button type="submit" class="btn btn-primary" id="loginBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg>
+            Authenticate
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Screen -->
+  <div id="dashboardScreen" class="screen hidden">
+    <div class="dashboard">
+      <div class="dash-header">
+        <h2 class="dash-title">Garage Control</h2>
+        <button class="btn-logout" id="logoutBtn">Sign Out</button>
+      </div>
+
+      <!-- Status -->
+      <div class="status-card">
+        <div id="statusBadge" class="status-indicator status-ready">
+          <span class="status-dot"></span>
+          <span id="statusText">System Ready</span>
+        </div>
+      </div>
+
+      <!-- Garage Control -->
+      <div class="garage-control">
+        <div class="garage-icon-container">
+          <div id="iconRing" class="garage-icon-ring"></div>
+          <div id="iconInner" class="garage-icon-inner">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zm-2 10H6V7h12v12zm-9-6l3-3 3 3"/>
+            </svg>
+          </div>
+        </div>
+        <h3 class="garage-label">Garage Door</h3>
+        <p class="garage-sublabel">Tap below to send open command</p>
+        <button id="garageBtn" class="btn-garage btn-garage-open" onclick="handleGarageOpen()">
+          <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg>
+          Open Garage
+        </button>
+        <div id="resultMessage" class="result-message"></div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="log-card">
+        <h4 class="log-title">Recent Activity</h4>
+        <div id="logContainer">
+          <p class="log-empty">No activity yet</p>
+        </div>
+      </div>
+
+      <div class="dash-footer">
+        Regent Properties &middot; Secure Access System
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="confirm-card">
+      <h3 class="confirm-title">Confirm Action</h3>
+      <p class="confirm-text">Are you sure you want to open the garage door?</p>
+      <div class="confirm-buttons">
+        <button class="btn-confirm btn-cancel" onclick="closeConfirm()">Cancel</button>
+        <button class="btn-confirm btn-confirm-action" onclick="confirmGarageOpen()">Open Door</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check auth status on load
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth-check');
+        const data = await res.json();
+        if (data.authenticated) {
+          showDashboard();
+        }
+      } catch (e) {
+        // Not authenticated, show login
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('dashboardScreen').classList.remove('hidden');
+      loadStatus();
+      loadLog();
+    }
+
+    function showLogin() {
+      document.getElementById('dashboardScreen').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+    }
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('passwordInput').value;
+      const errorEl = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+
+      if (!password) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Authenticating...';
+      errorEl.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+
+        if (res.ok) {
+          showDashboard();
+        } else {
+          const data = await res.json();
+          errorEl.textContent = data.error || 'Invalid access code';
+          errorEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorEl.textContent = 'Connection error. Please try again.';
+        errorEl.classList.remove('hidden');
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg> Authenticate`;
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      showLogin();
+      document.getElementById('passwordInput').value = '';
+    });
+
+    // Garage open flow
+    function handleGarageOpen() {
+      document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function closeConfirm() {
+      document.getElementById('confirmModal').classList.remove('active');
+    }
+
+    async function confirmGarageOpen() {
+      closeConfirm();
+
+      const btn = document.getElementById('garageBtn');
+      const resultEl = document.getElementById('resultMessage');
+      const iconRing = document.getElementById('iconRing');
+      const iconInner = document.getElementById('iconInner');
+
+      // Set processing state
+      btn.disabled = true;
+      btn.classList.add('processing');
+      btn.innerHTML = `<svg viewBox="0 0 24 24" style="animation: spin 1s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg> Sending Command...`;
+      iconRing.classList.add('active');
+      iconInner.classList.add('active');
+      resultEl.classList.remove('show');
+
+      try {
+        const res = await fetch('/api/garage/open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          btn.classList.remove('processing');
+          btn.classList.add('success');
+          btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Command Sent`;
+          resultEl.className = 'result-message result-success show';
+          resultEl.textContent = data.message || 'Garage door open command sent successfully.';
+        } else {
+          btn.classList.remove('processing');
+          btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg> Open Garage`;
+          resultEl.className = 'result-message result-error show';
+          resultEl.textContent = data.error || data.message || 'Failed to send command.';
+        }
+      } catch (err) {
+        btn.classList.remove('processing');
+        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg> Open Garage`;
+        resultEl.className = 'result-message result-error show';
+        resultEl.textContent = 'Connection error. Please try again.';
+      }
+
+      // Reset button after 3 seconds
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('success');
+        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg> Open Garage`;
+        iconRing.classList.remove('active');
+        iconInner.classList.remove('active');
+      }, 3000);
+
+      loadLog();
+    }
+
+    // Status
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/garage/status');
+        const data = await res.json();
+        const badge = document.getElementById('statusBadge');
+        const text = document.getElementById('statusText');
+
+        if (data.stratisConfigured) {
+          badge.className = 'status-indicator status-ready';
+          text.textContent = 'STRATIS Connected';
+        } else {
+          badge.className = 'status-indicator status-pending';
+          text.textContent = 'Awaiting STRATIS Credentials';
+        }
+      } catch (e) {}
+    }
+
+    // Activity Log
+    async function loadLog() {
+      try {
+        const res = await fetch('/api/garage/log');
+        const data = await res.json();
+        const container = document.getElementById('logContainer');
+
+        if (!data.log || data.log.length === 0) {
+          container.innerHTML = '<p class="log-empty">No activity yet</p>';
+          return;
+        }
+
+        container.innerHTML = data.log.map(entry => {
+          const time = new Date(entry.timestamp);
+          const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const dateStr = time.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          return `
+            <div class="log-entry">
+              <span class="log-dot ${entry.status}"></span>
+              <span class="log-text">Garage ${entry.action} - ${entry.status}</span>
+              <span class="log-time">${dateStr} ${timeStr}</span>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {}
+    }
+
+    // Spin animation for loading
+    const style = document.createElement('style');
+    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+
+    // Init
+    checkAuth();
+  </script>
+</body>
+</html>
