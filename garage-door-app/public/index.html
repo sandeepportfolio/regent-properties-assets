@@ -2,920 +2,530 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Regent Properties - Garage Access</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%236366f1'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>R</text></svg>">
   <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#09090b;--bg2:#111114;--card:#18181b;--elevated:#1e1e23;
+      --accent:#6366f1;--accent2:#7c7ff7;--glow:rgba(99,102,241,.25);--glow2:rgba(99,102,241,.5);
+      --ok:#22c55e;--ok-glow:rgba(34,197,94,.2);--err:#ef4444;--err-glow:rgba(239,68,68,.2);--warn:#eab308;
+      --text:#fafafa;--text2:#a1a1aa;--muted:#71717a;
+      --border:rgba(255,255,255,.06);--border-a:rgba(99,102,241,.2);
+      --r:12px;--rl:16px;--rxl:20px;
     }
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+    .ambient{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .ambient::before{content:'';position:absolute;top:-40%;left:-20%;width:140%;height:140%;background:radial-gradient(ellipse at 30% 20%,rgba(99,102,241,.06) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(139,92,246,.04) 0%,transparent 50%);animation:drift 20s ease-in-out infinite alternate}
+    .ambient::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:64px 64px}
+    @keyframes drift{to{transform:translate(2%,-2%) rotate(1deg)}}
+    .app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+    .screen{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+    .hidden{display:none!important}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 
-    :root {
-      --bg-primary: #0a0a0f;
-      --bg-secondary: #12121a;
-      --bg-card: #1a1a2e;
-      --bg-card-hover: #1f1f35;
-      --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.3);
-      --accent-light: #818cf8;
-      --success: #10b981;
-      --success-glow: rgba(16, 185, 129, 0.3);
-      --danger: #ef4444;
-      --danger-glow: rgba(239, 68, 68, 0.3);
-      --warning: #f59e0b;
-      --text-primary: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --border: rgba(99, 102, 241, 0.15);
-      --border-subtle: rgba(255, 255, 255, 0.06);
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Animated background */
-    .bg-grid {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image:
-        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
-      z-index: 0;
-    }
-
-    .bg-glow {
-      position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08), transparent 50%);
-      z-index: 0;
-      animation: slowPulse 8s ease-in-out infinite;
-    }
-
-    @keyframes slowPulse {
-      0%, 100% { opacity: 0.5; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.05); }
-    }
-
-    /* Login Screen */
-    .screen {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .hidden { display: none !important; }
-
-    .login-container {
-      width: 100%;
-      max-width: 420px;
-      animation: fadeInUp 0.6s ease;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .logo-section {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .logo-icon {
-      width: 72px;
-      height: 72px;
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-      box-shadow: 0 8px 32px var(--accent-glow);
-    }
-
-    .logo-icon svg {
-      width: 36px;
-      height: 36px;
-      fill: white;
-    }
-
-    .logo-title {
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
-    }
-
-    .logo-subtitle {
-      color: var(--text-secondary);
-      font-size: 14px;
-      font-weight: 400;
-    }
-
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      backdrop-filter: blur(20px);
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 14px 16px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      color: var(--text-primary);
-      font-size: 16px;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    .form-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    .form-input::placeholder {
-      color: var(--text-muted);
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      width: 100%;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
-      color: white;
-      box-shadow: 0 4px 16px var(--accent-glow);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px var(--accent-glow);
-    }
-
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
-    .error-msg {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      color: var(--danger);
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
+    /* Login */
+    .login-w{width:100%;max-width:400px;animation:fadeIn .5s ease}
+    .brand{text-align:center;margin-bottom:36px}
+    .brand-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--accent),#8b5cf6);border-radius:18px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 8px 40px var(--glow)}
+    .brand-icon svg{width:32px;height:32px}
+    .brand h1{font-size:22px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px}
+    .brand p{font-size:14px;color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--rxl);padding:28px}
+    .alert{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:16px;text-align:center}
+    .alert-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:var(--err)}
+    .alert-warn{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.15);color:var(--warn)}
+    .field{margin-bottom:20px}
+    .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+    .input{width:100%;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+    .input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+    .input::placeholder{color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 20px;border:none;border-radius:var(--r);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+    .btn svg{width:16px;height:16px;flex-shrink:0}
+    .btn-a{background:var(--accent);color:#fff;box-shadow:0 2px 12px var(--glow)}
+    .btn-a:hover{background:var(--accent2);box-shadow:0 4px 20px var(--glow);transform:translateY(-1px)}
+    .btn-a:active{transform:translateY(0)}
+    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+    .attempts-info{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
 
     /* Dashboard */
-    .dashboard {
-      max-width: 480px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 20px;
-      animation: fadeInUp 0.6s ease;
-    }
+    .dash{max-width:440px;width:100%;padding:16px 0;animation:fadeIn .5s ease}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .topbar h2{font-size:18px;font-weight:700;letter-spacing:-.3px}
+    .top-actions{display:flex;gap:8px}
+    .btn-g{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .2s}
+    .btn-g:hover{border-color:var(--text2);color:var(--text2)}
+    .btn-g.active{border-color:var(--accent);color:var(--accent)}
+    .btn-g.danger:hover{border-color:rgba(239,68,68,.4);color:var(--err)}
 
-    .dash-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 0;
-      margin-bottom: 16px;
-    }
+    /* Tabs */
+    .tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:3px}
+    .tab{flex:1;padding:8px;border:none;background:none;color:var(--muted);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border-radius:8px;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
+    .tab.active{background:var(--accent);color:#fff}
+    .tab:hover:not(.active){color:var(--text2)}
 
-    .dash-title {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .btn-logout {
-      background: transparent;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn-logout:hover {
-      border-color: var(--danger);
-      color: var(--danger);
-    }
-
-    /* Status Card */
-    .status-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .status-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-
-    .status-ready {
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    .status-pending {
-      background: rgba(245, 158, 11, 0.1);
-      color: var(--warning);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+    /* Status */
+    .status-pill{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:16px;font-size:13px;font-weight:500;color:var(--text2)}
+    .dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite}
+    .dot-ok{background:var(--ok)}.dot-warn{background:var(--warn)}.dot-err{background:var(--err)}
 
     /* Garage Control */
-    .garage-control {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px 24px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
+    .ctrl{background:var(--card);border:1px solid var(--border);border-radius:var(--rxl);padding:40px 24px;text-align:center;margin-bottom:16px}
+    .door-vis{width:140px;height:110px;margin:0 auto 24px;position:relative}
+    .door-f{width:100%;height:100%;border:2px solid var(--muted);border-radius:8px 8px 0 0;position:relative;overflow:hidden;transition:border-color .4s}
+    .door-f.glow{border-color:var(--accent);box-shadow:0 0 20px var(--glow)}
+    .door-p{position:absolute;bottom:0;left:0;right:0;height:100%;background:repeating-linear-gradient(to bottom,var(--elevated) 0px,var(--elevated) 18px,var(--muted) 18px,var(--muted) 19px);transition:transform .8s cubic-bezier(.4,0,.2,1)}
+    .door-p.up{transform:translateY(-95%)}
+    .door-h{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);width:24px;height:4px;background:var(--muted);border-radius:2px;z-index:2;transition:opacity .4s}
+    .door-p.up .door-h{opacity:0}
+    .door-g{width:160px;height:3px;margin:0 auto;background:var(--muted);border-radius:0 0 4px 4px;opacity:.3}
+    .ctrl h3{font-size:20px;font-weight:700;margin-bottom:4px;letter-spacing:-.3px}
+    .ctrl .sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+    .btn-big{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:260px;padding:16px 28px;border:none;border-radius:14px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;text-transform:uppercase;letter-spacing:1.5px;transition:all .3s;position:relative;overflow:hidden}
+    .btn-big svg{width:18px;height:18px;fill:currentColor}
+    .btn-big.open{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;box-shadow:0 6px 24px var(--glow)}
+    .btn-big.open:hover:not(:disabled){box-shadow:0 8px 32px var(--glow2);transform:translateY(-2px)}
+    .btn-big:disabled{opacity:.6;cursor:not-allowed}
+    .btn-big.sending{background:linear-gradient(135deg,#7c3aed,var(--accent))}
+    .btn-big.sending::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);background-size:200% 100%;animation:shimmer 1.5s infinite}
+    .btn-big.done{background:linear-gradient(135deg,var(--ok),#16a34a);box-shadow:0 6px 24px var(--ok-glow)}
+    .toast{margin-top:20px;padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .3s}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast-ok{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);color:var(--ok)}
+    .toast-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:var(--err)}
 
-    .garage-icon-container {
-      position: relative;
-      width: 140px;
-      height: 140px;
-      margin: 0 auto 28px;
-    }
+    /* Steps Tracker */
+    .steps{margin-top:16px;text-align:left}
+    .step{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--text2)}
+    .step-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+    .step-ok{background:rgba(34,197,94,.15);color:var(--ok)}
+    .step-err{background:rgba(239,68,68,.15);color:var(--err)}
+    .step-wait{background:rgba(234,179,8,.15);color:var(--warn)}
+    .step-skip{background:rgba(161,161,170,.15);color:var(--muted)}
 
-    .garage-icon-ring {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      border: 2px solid var(--border);
-      transition: all 0.4s ease;
-    }
+    /* Log Card */
+    .log-c{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:16px}
+    .log-h{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+    .log-i{display:flex;align-items:center;gap:10px;padding:8px 0}
+    .log-i+.log-i{border-top:1px solid var(--border)}
+    .log-d{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .log-d-ok{background:var(--ok)}.log-d-err{background:var(--err)}.log-d-pend{background:var(--warn)}
+    .log-l{flex:1;font-size:13px;color:var(--text2)}
+    .log-t{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+    .log-e{text-align:center;color:var(--muted);font-size:13px;padding:12px}
 
-    .garage-icon-ring.active {
-      border-color: var(--accent);
-      box-shadow: 0 0 40px var(--accent-glow);
-    }
+    /* Debug Panel */
+    .debug-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:16px}
+    .debug-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)}
+    .debug-row:last-child{border:none}
+    .debug-key{color:var(--muted)}
+    .debug-val{color:var(--text2);font-family:monospace;font-size:12px}
+    .debug-log{max-height:300px;overflow-y:auto;font-family:monospace;font-size:11px;line-height:1.6}
+    .debug-entry{padding:4px 0;border-bottom:1px solid var(--border)}
+    .debug-entry.info{color:var(--accent)}.debug-entry.warn{color:var(--warn)}
+    .debug-entry.error{color:var(--err)}.debug-entry.action{color:var(--ok)}
+    .debug-entry.debug{color:var(--muted)}
 
-    .garage-icon-inner {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.4s ease;
-    }
+    /* Identity Card */
+    .id-card{background:var(--card);border:1px solid var(--border-a);border-radius:var(--rl);padding:18px;margin-bottom:16px}
+    .id-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+    .id-verified{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--ok)}
+    .id-warning{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--err)}
 
-    .garage-icon-inner svg {
-      width: 48px;
-      height: 48px;
-      fill: var(--text-secondary);
-      transition: all 0.4s ease;
-    }
+    /* Screenshots */
+    .ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    .ss-thumb{border-radius:8px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:all .2s}
+    .ss-thumb:hover{border-color:var(--accent);transform:scale(1.02)}
+    .ss-thumb img{width:100%;display:block}
+    .ss-label{font-size:10px;color:var(--muted);padding:4px 6px;background:var(--bg)}
 
-    .garage-icon-inner.active svg {
-      fill: var(--accent-light);
-    }
+    /* Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+    .overlay.open{opacity:1;pointer-events:all}
+    .modal{background:var(--card);border:1px solid var(--border-a);border-radius:var(--rxl);padding:28px;max-width:320px;width:100%;text-align:center;transform:scale(.92);transition:transform .25s}
+    .overlay.open .modal{transform:scale(1)}
+    .modal-icon{width:48px;height:48px;background:rgba(99,102,241,.1);border:1px solid var(--border-a);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px}
+    .modal-icon svg{width:24px;height:24px;fill:var(--accent)}
+    .modal h3{font-size:16px;font-weight:700;margin-bottom:6px}
+    .modal p{font-size:13px;color:var(--muted);margin-bottom:22px}
+    .modal-acts{display:flex;gap:10px}
+    .modal-acts .btn{flex:1;padding:11px;font-size:13px}
+    .btn-f{background:var(--bg);border:1px solid var(--border);color:var(--text2)}
+    .btn-f:hover{border-color:var(--muted)}
 
-    .garage-label {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      letter-spacing: -0.3px;
-    }
-
-    .garage-sublabel {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
-    }
-
-    .btn-garage {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      max-width: 280px;
-      padding: 18px 32px;
-      border: none;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-garage-open {
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
-      color: white;
-      box-shadow: 0 8px 32px var(--accent-glow);
-    }
-
-    .btn-garage-open:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px var(--accent-glow);
-    }
-
-    .btn-garage-open:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .btn-garage:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .btn-garage svg {
-      width: 20px;
-      height: 20px;
-      fill: currentColor;
-    }
-
-    /* Processing animation */
-    .btn-garage.processing {
-      background: linear-gradient(135deg, #8b5cf6, var(--accent));
-    }
-
-    .btn-garage.processing::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 200%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-      animation: shimmer 1.5s infinite;
-    }
-
-    @keyframes shimmer {
-      to { transform: translateX(100%); }
-    }
-
-    /* Success state */
-    .btn-garage.success {
-      background: linear-gradient(135deg, var(--success), #059669);
-      box-shadow: 0 8px 32px var(--success-glow);
-    }
-
-    /* Result Message */
-    .result-message {
-      margin-top: 20px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
-    }
-
-    .result-message.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .result-success {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      color: var(--success);
-    }
-
-    .result-error {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      color: var(--danger);
-    }
-
-    /* Activity Log */
-    .log-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .log-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .log-entry {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .log-entry:last-child {
-      border-bottom: none;
-    }
-
-    .log-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .log-dot.success { background: var(--success); }
-    .log-dot.pending { background: var(--warning); }
-    .log-dot.error { background: var(--danger); }
-
-    .log-text {
-      flex: 1;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .log-time {
-      font-size: 12px;
-      color: var(--text-muted);
-      white-space: nowrap;
-    }
-
-    .log-empty {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 13px;
-      padding: 20px;
-    }
-
-    /* Footer */
-    .dash-footer {
-      text-align: center;
-      padding: 20px 0;
-      color: var(--text-muted);
-      font-size: 12px;
-    }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      .garage-control { padding: 30px 16px; }
-      .garage-icon-container { width: 120px; height: 120px; }
-      .card { padding: 24px 20px; }
-    }
-
-    /* Keypad Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(8px);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .confirm-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px;
-      max-width: 340px;
-      width: 90%;
-      text-align: center;
-      transform: scale(0.9);
-      transition: transform 0.3s ease;
-    }
-
-    .modal-overlay.active .confirm-card {
-      transform: scale(1);
-    }
-
-    .confirm-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .confirm-text {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-bottom: 24px;
-    }
-
-    .confirm-buttons {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn-confirm {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s ease;
-    }
-
-    .btn-cancel {
-      background: var(--bg-primary);
-      color: var(--text-secondary);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .btn-cancel:hover {
-      border-color: var(--text-muted);
-    }
-
-    .btn-confirm-action {
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
-      color: white;
-    }
-
-    .btn-confirm-action:hover {
-      box-shadow: 0 4px 16px var(--accent-glow);
-    }
+    .footer{text-align:center;padding:16px;font-size:11px;color:var(--muted)}
+    @media(max-width:480px){.ctrl{padding:32px 18px}.door-vis{width:120px;height:94px}.card{padding:24px 20px}}
   </style>
 </head>
 <body>
-  <div class="bg-grid"></div>
-  <div class="bg-glow"></div>
+<div class="ambient"></div>
+<div class="app">
 
-  <!-- Login Screen -->
-  <div id="loginScreen" class="screen">
-    <div class="login-container">
-      <div class="logo-section">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.83-3.4 9.36-7 10.58-3.6-1.22-7-5.75-7-10.58V6.3l7-3.12z"/></svg>
+  <!-- LOGIN -->
+  <div id="loginView" class="screen">
+    <div class="login-w">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <h1 class="logo-title">Regent Properties</h1>
-        <p class="logo-subtitle">Secure Garage Access Portal</p>
+        <h1>Regent Properties</h1>
+        <p>Secure Garage Access</p>
       </div>
       <div class="card">
-        <div id="loginError" class="error-msg hidden"></div>
+        <div id="loginAlert" class="alert alert-err hidden"></div>
         <form id="loginForm">
-          <div class="form-group">
-            <label class="form-label">Access Code</label>
-            <input
-              type="password"
-              id="passwordInput"
-              class="form-input"
-              placeholder="Enter your access code"
-              autocomplete="current-password"
-              autofocus
-            />
+          <div class="field">
+            <label for="pw">Access Code</label>
+            <input type="password" id="pw" class="input" placeholder="Enter your access code" autocomplete="current-password" autofocus>
           </div>
-          <button type="submit" class="btn btn-primary" id="loginBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg>
+          <button type="submit" class="btn btn-a" id="loginBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             Authenticate
           </button>
         </form>
+        <div id="attemptsInfo" class="attempts-info hidden"></div>
       </div>
     </div>
   </div>
 
-  <!-- Dashboard Screen -->
-  <div id="dashboardScreen" class="screen hidden">
-    <div class="dashboard">
-      <div class="dash-header">
-        <h2 class="dash-title">Garage Control</h2>
-        <button class="btn-logout" id="logoutBtn">Sign Out</button>
+  <!-- DASHBOARD -->
+  <div id="dashView" class="screen hidden">
+    <div class="dash">
+      <div class="topbar">
+        <h2>Garage Control</h2>
+        <div class="top-actions">
+          <button class="btn-g" id="debugToggle" title="Debug Panel">Debug</button>
+          <button class="btn-g danger" id="logoutBtn">Sign Out</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="control">Control</button>
+        <button class="tab" data-tab="activity">Activity</button>
+        <button class="tab" data-tab="identity">Identity</button>
       </div>
 
       <!-- Status -->
-      <div class="status-card">
-        <div id="statusBadge" class="status-indicator status-ready">
-          <span class="status-dot"></span>
-          <span id="statusText">System Ready</span>
-        </div>
+      <div class="status-pill">
+        <span id="sDot" class="dot dot-warn"></span>
+        <span id="sLabel">Connecting...</span>
       </div>
 
-      <!-- Garage Control -->
-      <div class="garage-control">
-        <div class="garage-icon-container">
-          <div id="iconRing" class="garage-icon-ring"></div>
-          <div id="iconInner" class="garage-icon-inner">
-            <svg viewBox="0 0 24 24">
-              <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zm-2 10H6V7h12v12zm-9-6l3-3 3 3"/>
-            </svg>
+      <!-- TAB: Control -->
+      <div id="tab-control" class="tab-content">
+        <div class="ctrl">
+          <div class="door-vis">
+            <div id="doorFrame" class="door-f"><div id="doorPanel" class="door-p"><div class="door-h"></div></div></div>
+            <div class="door-g"></div>
           </div>
-        </div>
-        <h3 class="garage-label">Garage Door</h3>
-        <p class="garage-sublabel">Tap below to send open command</p>
-        <button id="garageBtn" class="btn-garage btn-garage-open" onclick="handleGarageOpen()">
-          <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg>
-          Open Garage
-        </button>
-        <div id="resultMessage" class="result-message"></div>
-      </div>
-
-      <!-- Activity Log -->
-      <div class="log-card">
-        <h4 class="log-title">Recent Activity</h4>
-        <div id="logContainer">
-          <p class="log-empty">No activity yet</p>
+          <h3>Garage Door</h3>
+          <p class="sub">Tap the button to send an open command</p>
+          <button id="garageBtn" class="btn-big open">
+            <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
+            Open Garage
+          </button>
+          <div id="toast" class="toast"></div>
+          <div id="stepsContainer" class="steps hidden"></div>
         </div>
       </div>
 
-      <div class="dash-footer">
-        Regent Properties &middot; Secure Access System
+      <!-- TAB: Activity -->
+      <div id="tab-activity" class="tab-content hidden">
+        <div class="log-c">
+          <div class="log-h">Action History</div>
+          <div id="logList"><p class="log-e">Loading...</p></div>
+        </div>
       </div>
+
+      <!-- TAB: Identity -->
+      <div id="tab-identity" class="tab-content hidden">
+        <div class="id-card">
+          <div class="log-h">Session Identity</div>
+          <div id="identityContent"><p class="log-e">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Debug Panel (hidden by default) -->
+      <div id="debugPanel" class="debug-panel hidden">
+        <div class="log-h">System Debug</div>
+        <div id="debugSystem"></div>
+        <div class="log-h" style="margin-top:12px">Server Logs</div>
+        <div class="debug-log" id="debugLogs"></div>
+      </div>
+
+      <div class="footer">Regent Properties &middot; Secure Access v2.0</div>
     </div>
   </div>
+</div>
 
-  <!-- Confirmation Modal -->
-  <div id="confirmModal" class="modal-overlay">
-    <div class="confirm-card">
-      <h3 class="confirm-title">Confirm Action</h3>
-      <p class="confirm-text">Are you sure you want to open the garage door?</p>
-      <div class="confirm-buttons">
-        <button class="btn-confirm btn-cancel" onclick="closeConfirm()">Cancel</button>
-        <button class="btn-confirm btn-confirm-action" onclick="confirmGarageOpen()">Open Door</button>
-      </div>
+<!-- Confirm Modal -->
+<div id="confirmOverlay" class="overlay">
+  <div class="modal">
+    <div class="modal-icon"><svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg></div>
+    <h3>Open Garage Door?</h3>
+    <p>This will send an open command to the garage system.</p>
+    <div class="modal-acts">
+      <button class="btn btn-f" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-a" onclick="doOpen()">Confirm</button>
     </div>
   </div>
+</div>
 
-  <script>
-    // Check auth status on load
-    async function checkAuth() {
-      try {
-        const res = await fetch('/api/auth-check');
-        const data = await res.json();
-        if (data.authenticated) {
-          showDashboard();
-        }
-      } catch (e) {
-        // Not authenticated, show login
+<script>
+// ===== API =====
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  const data = await res.json();
+  data._status = res.status;
+  return data;
+}
+
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.remove('hidden');
+    if (tab.dataset.tab === 'activity') loadLog();
+    if (tab.dataset.tab === 'identity') loadIdentity();
+  });
+});
+
+// ===== AUTH =====
+async function checkAuth() {
+  try {
+    const data = await api('GET', '/api/auth-check');
+    if (data.authenticated) { showDash(); return; }
+  } catch (e) {}
+}
+
+function showDash() {
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('dashView').classList.remove('hidden');
+  checkHealth();
+  setInterval(checkHealth, 30000);
+}
+
+function showLogin() {
+  document.getElementById('dashView').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+  document.getElementById('pw').value = '';
+}
+
+// Login form
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pw = document.getElementById('pw').value;
+  const alertEl = document.getElementById('loginAlert');
+  const btn = document.getElementById('loginBtn');
+  const attInfo = document.getElementById('attemptsInfo');
+  if (!pw) return;
+
+  btn.disabled = true;
+  alertEl.classList.add('hidden');
+  attInfo.classList.add('hidden');
+
+  try {
+    const data = await api('POST', '/api/login', { password: pw });
+    if (data.success) {
+      showDash();
+    } else {
+      alertEl.textContent = data.error || 'Invalid access code';
+      alertEl.className = 'alert alert-err';
+      alertEl.classList.remove('hidden');
+      if (data.attemptsRemaining !== undefined) {
+        attInfo.textContent = data.hint || `${data.attemptsRemaining} attempts remaining`;
+        attInfo.classList.remove('hidden');
       }
-    }
-
-    function showDashboard() {
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('dashboardScreen').classList.remove('hidden');
-      loadStatus();
-      loadLog();
-    }
-
-    function showLogin() {
-      document.getElementById('dashboardScreen').classList.add('hidden');
-      document.getElementById('loginScreen').classList.remove('hidden');
-    }
-
-    // Login
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const password = document.getElementById('passwordInput').value;
-      const errorEl = document.getElementById('loginError');
-      const btn = document.getElementById('loginBtn');
-
-      if (!password) return;
-
-      btn.disabled = true;
-      btn.textContent = 'Authenticating...';
-      errorEl.classList.add('hidden');
-
-      try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password })
-        });
-
-        if (res.ok) {
-          showDashboard();
-        } else {
-          const data = await res.json();
-          errorEl.textContent = data.error || 'Invalid access code';
-          errorEl.classList.remove('hidden');
-        }
-      } catch (err) {
-        errorEl.textContent = 'Connection error. Please try again.';
-        errorEl.classList.remove('hidden');
+      if (data.remainingMinutes) {
+        alertEl.className = 'alert alert-warn';
+        attInfo.textContent = `Locked for ${data.remainingMinutes} more minute(s)`;
+        attInfo.classList.remove('hidden');
       }
+      document.getElementById('pw').value = '';
+      document.getElementById('pw').focus();
+    }
+  } catch (err) {
+    alertEl.textContent = 'Connection error. Is the server running?';
+    alertEl.className = 'alert alert-err';
+    alertEl.classList.remove('hidden');
+  }
+  btn.disabled = false;
+});
 
-      btn.disabled = false;
-      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg> Authenticate`;
-    });
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await api('POST', '/api/logout');
+  showLogin();
+});
 
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await fetch('/api/logout', { method: 'POST' });
-      showLogin();
-      document.getElementById('passwordInput').value = '';
-    });
+// ===== HEALTH =====
+async function checkHealth() {
+  try {
+    const data = await api('GET', '/api/health');
+    const dot = document.getElementById('sDot');
+    const label = document.getElementById('sLabel');
+    if (data.status === 'ok') {
+      dot.className = 'dot ' + (data.stratisConfigured ? 'dot-ok' : 'dot-warn');
+      label.textContent = data.stratisConfigured ? 'STRATIS Connected' : 'Ready (STRATIS not configured)';
+    }
+  } catch (e) {
+    document.getElementById('sDot').className = 'dot dot-err';
+    document.getElementById('sLabel').textContent = 'Server unreachable';
+  }
+}
 
-    // Garage open flow
-    function handleGarageOpen() {
-      document.getElementById('confirmModal').classList.add('active');
+// ===== GARAGE =====
+document.getElementById('garageBtn').addEventListener('click', () => {
+  document.getElementById('confirmOverlay').classList.add('open');
+});
+function closeModal() { document.getElementById('confirmOverlay').classList.remove('open'); }
+
+async function doOpen() {
+  closeModal();
+  const btn = document.getElementById('garageBtn');
+  const toast = document.getElementById('toast');
+  const frame = document.getElementById('doorFrame');
+  const panel = document.getElementById('doorPanel');
+  const stepsEl = document.getElementById('stepsContainer');
+
+  btn.disabled = true;
+  btn.className = 'btn-big sending';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A8 8 0 0012 4zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A8 8 0 0012 20v3l4-4-4-4v3z"/></svg> Sending...';
+  frame.classList.add('glow');
+  toast.classList.remove('show');
+  stepsEl.classList.add('hidden');
+
+  try {
+    const data = await api('POST', '/api/garage/open');
+
+    // Show steps
+    if (data.steps && data.steps.length > 0) {
+      stepsEl.classList.remove('hidden');
+      stepsEl.innerHTML = data.steps.map(s => {
+        const icon = s.status === 'ok' ? 'step-ok' : s.status === 'error' ? 'step-err' : s.status === 'skipped' ? 'step-skip' : 'step-wait';
+        const sym = s.status === 'ok' ? '&#10003;' : s.status === 'error' ? '&#10007;' : s.status === 'skipped' ? '&#8212;' : '&#8226;';
+        return `<div class="step"><span class="step-icon ${icon}">${sym}</span><span>${s.step.replace(/_/g,' ')}${s.error ? ': '+s.error : ''}</span></div>`;
+      }).join('');
     }
 
-    function closeConfirm() {
-      document.getElementById('confirmModal').classList.remove('active');
+    // Show screenshots if any
+    if (data.screenshots && data.screenshots.length > 0) {
+      stepsEl.innerHTML += '<div class="log-h" style="margin-top:12px">Screenshots</div><div class="ss-grid">' +
+        data.screenshots.map(ss => `<div class="ss-thumb" onclick="window.open('${ss.url}')"><div class="ss-label">${ss.name}</div></div>`).join('') + '</div>';
     }
 
-    async function confirmGarageOpen() {
-      closeConfirm();
-
-      const btn = document.getElementById('garageBtn');
-      const resultEl = document.getElementById('resultMessage');
-      const iconRing = document.getElementById('iconRing');
-      const iconInner = document.getElementById('iconInner');
-
-      // Set processing state
-      btn.disabled = true;
-      btn.classList.add('processing');
-      btn.innerHTML = `<svg viewBox="0 0 24 24" style="animation: spin 1s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg> Sending Command...`;
-      iconRing.classList.add('active');
-      iconInner.classList.add('active');
-      resultEl.classList.remove('show');
-
-      try {
-        const res = await fetch('/api/garage/open', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-          btn.classList.remove('processing');
-          btn.classList.add('success');
-          btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Command Sent`;
-          resultEl.className = 'result-message result-success show';
-          resultEl.textContent = data.message || 'Garage door open command sent successfully.';
-        } else {
-          btn.classList.remove('processing');
-          btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg> Open Garage`;
-          resultEl.className = 'result-message result-error show';
-          resultEl.textContent = data.error || data.message || 'Failed to send command.';
-        }
-      } catch (err) {
-        btn.classList.remove('processing');
-        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg> Open Garage`;
-        resultEl.className = 'result-message result-error show';
-        resultEl.textContent = 'Connection error. Please try again.';
-      }
-
-      // Reset button after 3 seconds
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.classList.remove('success');
-        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg> Open Garage`;
-        iconRing.classList.remove('active');
-        iconInner.classList.remove('active');
-      }, 3000);
-
-      loadLog();
+    if (data.success) {
+      panel.classList.add('up');
+      btn.className = 'btn-big done';
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Sent';
+      toast.className = 'toast toast-ok show';
+      toast.textContent = data.message || 'Command sent successfully.';
+    } else {
+      btn.className = 'btn-big open';
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
+      toast.className = 'toast toast-err show';
+      toast.textContent = data.message || data.error || 'Failed to send command.';
     }
 
-    // Status
-    async function loadStatus() {
-      try {
-        const res = await fetch('/api/garage/status');
-        const data = await res.json();
-        const badge = document.getElementById('statusBadge');
-        const text = document.getElementById('statusText');
-
-        if (data.stratisConfigured) {
-          badge.className = 'status-indicator status-ready';
-          text.textContent = 'STRATIS Connected';
-        } else {
-          badge.className = 'status-indicator status-pending';
-          text.textContent = 'Awaiting STRATIS Credentials';
-        }
-      } catch (e) {}
+    if (data.actionId) {
+      toast.textContent += ` [ID: ${data.actionId}]`;
+    }
+    if (data.duration) {
+      toast.textContent += ` (${data.duration}ms)`;
     }
 
-    // Activity Log
-    async function loadLog() {
-      try {
-        const res = await fetch('/api/garage/log');
-        const data = await res.json();
-        const container = document.getElementById('logContainer');
+  } catch (err) {
+    btn.className = 'btn-big open';
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
+    toast.className = 'toast toast-err show';
+    toast.textContent = 'Connection error: ' + err.message;
+  }
 
-        if (!data.log || data.log.length === 0) {
-          container.innerHTML = '<p class="log-empty">No activity yet</p>';
-          return;
-        }
+  // Reset after 5s
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.className = 'btn-big open';
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
+    frame.classList.remove('glow');
+    panel.classList.remove('up');
+  }, 5000);
+}
 
-        container.innerHTML = data.log.map(entry => {
-          const time = new Date(entry.timestamp);
-          const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const dateStr = time.toLocaleDateString([], { month: 'short', day: 'numeric' });
-          return `
-            <div class="log-entry">
-              <span class="log-dot ${entry.status}"></span>
-              <span class="log-text">Garage ${entry.action} - ${entry.status}</span>
-              <span class="log-time">${dateStr} ${timeStr}</span>
-            </div>
-          `;
-        }).join('');
-      } catch (e) {}
-    }
+// ===== ACTIVITY LOG =====
+async function loadLog() {
+  try {
+    const data = await api('GET', '/api/garage/log');
+    const el = document.getElementById('logList');
+    if (!data.log || data.log.length === 0) { el.innerHTML = '<p class="log-e">No activity yet</p>'; return; }
+    el.innerHTML = data.log.map(e => {
+      const d = new Date(e.timestamp);
+      const t = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+      const dt = d.toLocaleDateString([], { month:'short', day:'numeric' });
+      const dc = e.status === 'success' ? 'log-d-ok' : e.status === 'error' || e.status === 'failed' ? 'log-d-err' : 'log-d-pend';
+      return `<div class="log-i"><span class="log-d ${dc}"></span><span class="log-l">Garage ${e.action} - ${e.status} ${e.duration ? '('+e.duration+'ms)' : ''}</span><span class="log-t">${dt} ${t}</span></div>`;
+    }).join('');
+  } catch (e) { document.getElementById('logList').innerHTML = '<p class="log-e">Failed to load log</p>'; }
+}
 
-    // Spin animation for loading
-    const style = document.createElement('style');
-    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(style);
+// ===== IDENTITY =====
+async function loadIdentity() {
+  try {
+    const data = await api('GET', '/api/identity');
+    const el = document.getElementById('identityContent');
+    if (!data.verified) { el.innerHTML = '<p class="log-e">Not verified</p>'; return; }
+    const s = data.session;
+    const sec = data.security;
+    el.innerHTML = `
+      <div class="id-badge ${sec.ipChanged ? 'id-warning' : 'id-verified'}">${sec.ipChanged ? '&#9888; IP Changed' : '&#10003; Verified'}</div>
+      ${sec.warning ? `<div class="alert alert-warn" style="margin-bottom:12px">${sec.warning}</div>` : ''}
+      <div class="debug-row"><span class="debug-key">Session ID</span><span class="debug-val">${s.id}</span></div>
+      <div class="debug-row"><span class="debug-key">Login Time</span><span class="debug-val">${new Date(s.loginTime).toLocaleString()}</span></div>
+      <div class="debug-row"><span class="debug-key">Login IP</span><span class="debug-val">${s.loginIP}</span></div>
+      <div class="debug-row"><span class="debug-key">Current IP</span><span class="debug-val">${s.currentIP}</span></div>
+      <div class="debug-row"><span class="debug-key">IP Match</span><span class="debug-val">${s.ipMatch ? 'Yes' : 'No - SUSPICIOUS'}</span></div>
+      <div class="debug-row"><span class="debug-key">User Agent</span><span class="debug-val" style="font-size:10px;word-break:break-all">${s.userAgent || 'N/A'}</span></div>
+      <div class="debug-row"><span class="debug-key">Last Active</span><span class="debug-val">${new Date(s.lastActive).toLocaleString()}</span></div>
+    `;
+  } catch (e) { document.getElementById('identityContent').innerHTML = '<p class="log-e">Failed to load identity</p>'; }
+}
 
-    // Init
-    checkAuth();
-  </script>
+// ===== DEBUG PANEL =====
+document.getElementById('debugToggle').addEventListener('click', async function() {
+  const panel = document.getElementById('debugPanel');
+  this.classList.toggle('active');
+  panel.classList.toggle('hidden');
+  if (!panel.classList.contains('hidden')) { await loadDebug(); }
+});
+
+async function loadDebug() {
+  try {
+    const [sys, logs] = await Promise.all([api('GET', '/api/debug/system'), api('GET', '/api/debug/logs?limit=50')]);
+    const sysEl = document.getElementById('debugSystem');
+    sysEl.innerHTML = `
+      <div class="debug-row"><span class="debug-key">Uptime</span><span class="debug-val">${sys.uptime}s</span></div>
+      <div class="debug-row"><span class="debug-key">Memory</span><span class="debug-val">${Math.round(sys.memory.rss/1048576)}MB RSS</span></div>
+      <div class="debug-row"><span class="debug-key">Node</span><span class="debug-val">${sys.nodeVersion}</span></div>
+      <div class="debug-row"><span class="debug-key">STRATIS</span><span class="debug-val">${sys.env.stratisConfigured ? 'Configured' : 'Not configured'}</span></div>
+      <div class="debug-row"><span class="debug-key">Actions</span><span class="debug-val">${sys.env.actionCount}</span></div>
+      <div class="debug-row"><span class="debug-key">Sessions</span><span class="debug-val">${sys.env.activeSessions}</span></div>
+      <div class="debug-row"><span class="debug-key">Log Entries</span><span class="debug-val">${sys.env.logEntries}</span></div>
+    `;
+    const logsEl = document.getElementById('debugLogs');
+    logsEl.innerHTML = logs.logs.map(l => `<div class="debug-entry ${l.level}">[${l.timestamp.substring(11,19)}] [${l.level}] [${l.category}] ${l.message}</div>`).join('');
+  } catch (e) { document.getElementById('debugSystem').innerHTML = '<p class="log-e">Failed to load debug info</p>'; }
+}
+
+// Init
+checkAuth();
+</script>
 </body>
 </html>

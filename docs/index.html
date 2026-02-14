@@ -6,928 +6,611 @@
   <title>Regent Properties - Garage Access</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%236366f1'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>R</text></svg>">
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --bg-primary: #09090b;
-      --bg-secondary: #111114;
-      --bg-card: #18181b;
-      --bg-elevated: #1e1e23;
-      --accent: #6366f1;
-      --accent-hover: #7c7ff7;
-      --accent-glow: rgba(99, 102, 241, 0.25);
-      --accent-glow-strong: rgba(99, 102, 241, 0.5);
-      --success: #22c55e;
-      --success-glow: rgba(34, 197, 94, 0.25);
-      --danger: #ef4444;
-      --warning: #eab308;
-      --text: #fafafa;
-      --text-secondary: #a1a1aa;
-      --text-muted: #71717a;
-      --border: rgba(255, 255, 255, 0.06);
-      --border-accent: rgba(99, 102, 241, 0.2);
-      --radius: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 20px;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg-primary);
-      color: var(--text);
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* Ambient Background */
-    .ambient {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .ambient::before {
-      content: '';
-      position: absolute;
-      top: -40%;
-      left: -20%;
-      width: 140%;
-      height: 140%;
-      background: radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
-                  radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
-      animation: ambientShift 20s ease-in-out infinite alternate;
-    }
-
-    .ambient::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-      background-size: 64px 64px;
-    }
-
-    @keyframes ambientShift {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      100% { transform: translate(2%, -2%) rotate(1deg); }
-    }
-
-    /* Layout */
-    .app {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .screen {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .hidden { display: none !important; }
-
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    @keyframes ringPulse {
-      0% { box-shadow: 0 0 0 0 var(--accent-glow-strong); }
-      70% { box-shadow: 0 0 0 20px transparent; }
-      100% { box-shadow: 0 0 0 0 transparent; }
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-
-    /* ===== LOGIN SCREEN ===== */
-    .login-wrap {
-      width: 100%;
-      max-width: 400px;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .brand {
-      text-align: center;
-      margin-bottom: 36px;
-    }
-
-    .brand-icon {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
-      border-radius: 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 40px var(--accent-glow);
-      transition: transform 0.3s ease;
-    }
-
-    .brand-icon:hover { transform: scale(1.05) rotate(-2deg); }
-
-    .brand-icon svg { width: 32px; height: 32px; }
-
-    .brand h1 {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.4px;
-      margin-bottom: 4px;
-    }
-
-    .brand p {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 28px;
-    }
-
-    .alert {
-      padding: 10px 14px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .alert-error {
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.15);
-      color: var(--danger);
-    }
-
-    .field { margin-bottom: 20px; }
-
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 8px;
-    }
-
-    .input {
-      width: 100%;
-      padding: 12px 14px;
-      background: var(--bg-primary);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-size: 15px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    .input::placeholder { color: var(--text-muted); }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 13px 20px;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 14px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-
-    .btn-accent {
-      background: var(--accent);
-      color: white;
-      box-shadow: 0 2px 12px var(--accent-glow);
-    }
-
-    .btn-accent:hover {
-      background: var(--accent-hover);
-      box-shadow: 0 4px 20px var(--accent-glow);
-      transform: translateY(-1px);
-    }
-
-    .btn-accent:active { transform: translateY(0); }
-
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-
-    /* ===== DASHBOARD ===== */
-    .dashboard {
-      max-width: 440px;
-      width: 100%;
-      padding: 16px 0;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-
-    .topbar h2 {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .btn-ghost {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 500;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-ghost:hover {
-      border-color: rgba(239,68,68,0.4);
-      color: var(--danger);
-    }
-
-    /* Status Pill */
-    .status-pill {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 16px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      animation: pulse 2s infinite;
-    }
-
-    .status-dot.waiting { background: var(--warning); }
-
-    /* ===== GARAGE CONTROL CARD ===== */
-    .control-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 40px 24px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    /* Garage Door Animation */
-    .door-visual {
-      width: 140px;
-      height: 110px;
-      margin: 0 auto 24px;
-      position: relative;
-    }
-
-    .door-frame {
-      width: 100%;
-      height: 100%;
-      border: 2px solid var(--text-muted);
-      border-radius: 8px 8px 0 0;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.4s;
-    }
-
-    .door-frame.active { border-color: var(--accent); }
-
-    .door-panel {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 100%;
-      background: repeating-linear-gradient(
-        to bottom,
-        var(--bg-elevated) 0px,
-        var(--bg-elevated) 18px,
-        var(--text-muted) 18px,
-        var(--text-muted) 19px
-      );
-      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .door-panel.opening {
-      transform: translateY(-95%);
-    }
-
-    .door-handle {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 24px;
-      height: 4px;
-      background: var(--text-muted);
-      border-radius: 2px;
-      z-index: 2;
-      transition: opacity 0.4s;
-    }
-
-    .door-panel.opening .door-handle { opacity: 0; }
-
-    .door-ground {
-      width: 160px;
-      height: 3px;
-      margin: 0 auto;
-      background: var(--text-muted);
-      border-radius: 0 0 4px 4px;
-      opacity: 0.3;
-    }
-
-    .control-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      letter-spacing: -0.3px;
-    }
-
-    .control-sub {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
-    }
-
-    /* Big Button */
-    .btn-garage {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      max-width: 260px;
-      padding: 16px 28px;
-      border: none;
-      border-radius: 14px;
-      font-size: 15px;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-garage svg { width: 18px; height: 18px; fill: currentColor; }
-
-    .btn-open {
-      background: linear-gradient(135deg, var(--accent), #7c3aed);
-      color: white;
-      box-shadow: 0 6px 24px var(--accent-glow);
-    }
-
-    .btn-open:hover:not(:disabled) {
-      box-shadow: 0 8px 32px var(--accent-glow-strong);
-      transform: translateY(-2px);
-    }
-
-    .btn-open:active:not(:disabled) { transform: translateY(0); }
-
-    .btn-garage:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .btn-garage.sending {
-      background: linear-gradient(135deg, #7c3aed, var(--accent));
-    }
-
-    .btn-garage.sending::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    .btn-garage.done {
-      background: linear-gradient(135deg, var(--success), #16a34a);
-      box-shadow: 0 6px 24px var(--success-glow);
-    }
-
-    /* Result Toast */
-    .toast {
-      margin-top: 20px;
-      padding: 10px 16px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: all 0.3s;
-    }
-
-    .toast.show { opacity: 1; transform: translateY(0); }
-
-    .toast-ok {
-      background: rgba(34, 197, 94, 0.08);
-      border: 1px solid rgba(34, 197, 94, 0.15);
-      color: var(--success);
-    }
-
-    .toast-err {
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.15);
-      color: var(--danger);
-    }
-
-    /* ===== ACTIVITY LOG ===== */
-    .log-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-      margin-bottom: 16px;
-    }
-
-    .log-header {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 12px;
-    }
-
-    .log-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 0;
-    }
-
-    .log-item + .log-item {
-      border-top: 1px solid var(--border);
-    }
-
-    .log-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .log-dot-ok { background: var(--success); }
-    .log-dot-err { background: var(--danger); }
-
-    .log-label {
-      flex: 1;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .log-time {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .log-empty {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 13px;
-      padding: 12px;
-    }
-
-    /* Footer */
-    .footer {
-      text-align: center;
-      padding: 16px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    /* ===== CONFIRM MODAL ===== */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(6px);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s;
-    }
-
-    .overlay.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .modal {
-      background: var(--bg-card);
-      border: 1px solid var(--border-accent);
-      border-radius: var(--radius-xl);
-      padding: 28px;
-      max-width: 320px;
-      width: 100%;
-      text-align: center;
-      transform: scale(0.92);
-      transition: transform 0.25s;
-    }
-
-    .overlay.open .modal { transform: scale(1); }
-
-    .modal-icon {
-      width: 48px;
-      height: 48px;
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid var(--border-accent);
-      border-radius: 14px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
-
-    .modal-icon svg { width: 24px; height: 24px; fill: var(--accent); }
-
-    .modal h3 {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .modal p {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 22px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .modal-actions .btn { flex: 1; padding: 11px; font-size: 13px; }
-
-    .btn-flat {
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-    }
-
-    .btn-flat:hover { border-color: var(--text-muted); }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      .control-card { padding: 32px 18px; }
-      .door-visual { width: 120px; height: 94px; }
-      .card { padding: 24px 20px; }
-    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#09090b;--bg2:#111114;--card:#18181b;--elevated:#1e1e23;
+      --accent:#6366f1;--accent2:#7c7ff7;--glow:rgba(99,102,241,.25);--glow2:rgba(99,102,241,.5);
+      --ok:#22c55e;--ok-glow:rgba(34,197,94,.2);--err:#ef4444;--err-glow:rgba(239,68,68,.2);--warn:#eab308;
+      --text:#fafafa;--text2:#a1a1aa;--muted:#71717a;
+      --border:rgba(255,255,255,.06);--border-a:rgba(99,102,241,.2);
+      --r:12px;--rl:16px;--rxl:20px;
+    }
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+    .ambient{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .ambient::before{content:'';position:absolute;top:-40%;left:-20%;width:140%;height:140%;background:radial-gradient(ellipse at 30% 20%,rgba(99,102,241,.06) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(139,92,246,.04) 0%,transparent 50%);animation:drift 20s ease-in-out infinite alternate}
+    .ambient::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:64px 64px}
+    @keyframes drift{to{transform:translate(2%,-2%) rotate(1deg)}}
+    .app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+    .screen{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+    .hidden{display:none!important}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+    /* Login */
+    .login-w{width:100%;max-width:400px;animation:fadeIn .5s ease}
+    .brand{text-align:center;margin-bottom:36px}
+    .brand-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--accent),#8b5cf6);border-radius:18px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 8px 40px var(--glow)}
+    .brand-icon svg{width:32px;height:32px}
+    .brand h1{font-size:22px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px}
+    .brand p{font-size:14px;color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--rxl);padding:28px}
+    .alert{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:16px;text-align:center}
+    .alert-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:var(--err)}
+    .alert-warn{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.15);color:var(--warn)}
+    .field{margin-bottom:20px}
+    .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+    .input{width:100%;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+    .input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+    .input::placeholder{color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 20px;border:none;border-radius:var(--r);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+    .btn svg{width:16px;height:16px;flex-shrink:0}
+    .btn-a{background:var(--accent);color:#fff;box-shadow:0 2px 12px var(--glow)}
+    .btn-a:hover{background:var(--accent2);box-shadow:0 4px 20px var(--glow);transform:translateY(-1px)}
+    .btn-a:active{transform:translateY(0)}
+    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+    .attempts-info{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
+
+    /* Dashboard */
+    .dash{max-width:440px;width:100%;padding:16px 0;animation:fadeIn .5s ease}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .topbar h2{font-size:18px;font-weight:700;letter-spacing:-.3px}
+    .top-actions{display:flex;gap:8px}
+    .btn-g{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .2s}
+    .btn-g:hover{border-color:var(--text2);color:var(--text2)}
+    .btn-g.active{border-color:var(--accent);color:var(--accent)}
+    .btn-g.danger:hover{border-color:rgba(239,68,68,.4);color:var(--err)}
+
+    /* Tabs */
+    .tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:3px}
+    .tab{flex:1;padding:8px;border:none;background:none;color:var(--muted);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border-radius:8px;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
+    .tab.active{background:var(--accent);color:#fff}
+    .tab:hover:not(.active){color:var(--text2)}
+
+    /* Status */
+    .status-pill{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:16px;font-size:13px;font-weight:500;color:var(--text2)}
+    .dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite}
+    .dot-ok{background:var(--ok)}.dot-warn{background:var(--warn)}.dot-err{background:var(--err)}
+
+    /* Garage Control */
+    .ctrl{background:var(--card);border:1px solid var(--border);border-radius:var(--rxl);padding:40px 24px;text-align:center;margin-bottom:16px}
+    .door-vis{width:140px;height:110px;margin:0 auto 24px;position:relative}
+    .door-f{width:100%;height:100%;border:2px solid var(--muted);border-radius:8px 8px 0 0;position:relative;overflow:hidden;transition:border-color .4s}
+    .door-f.glow{border-color:var(--accent);box-shadow:0 0 20px var(--glow)}
+    .door-p{position:absolute;bottom:0;left:0;right:0;height:100%;background:repeating-linear-gradient(to bottom,var(--elevated) 0px,var(--elevated) 18px,var(--muted) 18px,var(--muted) 19px);transition:transform .8s cubic-bezier(.4,0,.2,1)}
+    .door-p.up{transform:translateY(-95%)}
+    .door-h{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);width:24px;height:4px;background:var(--muted);border-radius:2px;z-index:2;transition:opacity .4s}
+    .door-p.up .door-h{opacity:0}
+    .door-g{width:160px;height:3px;margin:0 auto;background:var(--muted);border-radius:0 0 4px 4px;opacity:.3}
+    .ctrl h3{font-size:20px;font-weight:700;margin-bottom:4px;letter-spacing:-.3px}
+    .ctrl .sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+    .btn-big{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:260px;padding:16px 28px;border:none;border-radius:14px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;text-transform:uppercase;letter-spacing:1.5px;transition:all .3s;position:relative;overflow:hidden}
+    .btn-big svg{width:18px;height:18px;fill:currentColor}
+    .btn-big.open{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;box-shadow:0 6px 24px var(--glow)}
+    .btn-big.open:hover:not(:disabled){box-shadow:0 8px 32px var(--glow2);transform:translateY(-2px)}
+    .btn-big:disabled{opacity:.6;cursor:not-allowed}
+    .btn-big.sending{background:linear-gradient(135deg,#7c3aed,var(--accent))}
+    .btn-big.sending::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);background-size:200% 100%;animation:shimmer 1.5s infinite}
+    .btn-big.done{background:linear-gradient(135deg,var(--ok),#16a34a);box-shadow:0 6px 24px var(--ok-glow)}
+    .toast{margin-top:20px;padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .3s}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast-ok{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);color:var(--ok)}
+    .toast-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:var(--err)}
+
+    /* Steps Tracker */
+    .steps{margin-top:16px;text-align:left}
+    .step{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--text2)}
+    .step-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+    .step-ok{background:rgba(34,197,94,.15);color:var(--ok)}
+    .step-err{background:rgba(239,68,68,.15);color:var(--err)}
+    .step-wait{background:rgba(234,179,8,.15);color:var(--warn)}
+    .step-skip{background:rgba(161,161,170,.15);color:var(--muted)}
+
+    /* Log Card */
+    .log-c{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:16px}
+    .log-h{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+    .log-i{display:flex;align-items:center;gap:10px;padding:8px 0}
+    .log-i+.log-i{border-top:1px solid var(--border)}
+    .log-d{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .log-d-ok{background:var(--ok)}.log-d-err{background:var(--err)}.log-d-pend{background:var(--warn)}
+    .log-l{flex:1;font-size:13px;color:var(--text2)}
+    .log-t{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+    .log-e{text-align:center;color:var(--muted);font-size:13px;padding:12px}
+
+    /* Debug Panel */
+    .debug-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:16px}
+    .debug-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)}
+    .debug-row:last-child{border:none}
+    .debug-key{color:var(--muted)}
+    .debug-val{color:var(--text2);font-family:monospace;font-size:12px}
+    .debug-log{max-height:300px;overflow-y:auto;font-family:monospace;font-size:11px;line-height:1.6}
+    .debug-entry{padding:4px 0;border-bottom:1px solid var(--border)}
+    .debug-entry.info{color:var(--accent)}.debug-entry.warn{color:var(--warn)}
+    .debug-entry.error{color:var(--err)}.debug-entry.action{color:var(--ok)}
+    .debug-entry.debug{color:var(--muted)}
+
+    /* Identity Card */
+    .id-card{background:var(--card);border:1px solid var(--border-a);border-radius:var(--rl);padding:18px;margin-bottom:16px}
+    .id-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+    .id-verified{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--ok)}
+    .id-warning{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--err)}
+
+    /* Screenshots */
+    .ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    .ss-thumb{border-radius:8px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:all .2s}
+    .ss-thumb:hover{border-color:var(--accent);transform:scale(1.02)}
+    .ss-thumb img{width:100%;display:block}
+    .ss-label{font-size:10px;color:var(--muted);padding:4px 6px;background:var(--bg)}
+
+    /* Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+    .overlay.open{opacity:1;pointer-events:all}
+    .modal{background:var(--card);border:1px solid var(--border-a);border-radius:var(--rxl);padding:28px;max-width:320px;width:100%;text-align:center;transform:scale(.92);transition:transform .25s}
+    .overlay.open .modal{transform:scale(1)}
+    .modal-icon{width:48px;height:48px;background:rgba(99,102,241,.1);border:1px solid var(--border-a);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px}
+    .modal-icon svg{width:24px;height:24px;fill:var(--accent)}
+    .modal h3{font-size:16px;font-weight:700;margin-bottom:6px}
+    .modal p{font-size:13px;color:var(--muted);margin-bottom:22px}
+    .modal-acts{display:flex;gap:10px}
+    .modal-acts .btn{flex:1;padding:11px;font-size:13px}
+    .btn-f{background:var(--bg);border:1px solid var(--border);color:var(--text2)}
+    .btn-f:hover{border-color:var(--muted)}
+
+    .footer{text-align:center;padding:16px;font-size:11px;color:var(--muted)}
+    @media(max-width:480px){.ctrl{padding:32px 18px}.door-vis{width:120px;height:94px}.card{padding:24px 20px}}
   </style>
 </head>
 <body>
-  <div class="ambient"></div>
+<div class="ambient"></div>
+<div class="app">
 
-  <div class="app">
-    <!-- ===== LOGIN ===== -->
-    <div id="loginView" class="screen">
-      <div class="login-wrap">
-        <div class="brand">
-          <div class="brand-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
+  <!-- LOGIN -->
+  <div id="loginView" class="screen">
+    <div class="login-w">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h1>Regent Properties</h1>
+        <p>Secure Garage Access</p>
+      </div>
+      <div class="card">
+        <div id="loginAlert" class="alert alert-err hidden"></div>
+        <form id="loginForm">
+          <div class="field">
+            <label for="pw">Access Code</label>
+            <input type="password" id="pw" class="input" placeholder="Enter your access code" autocomplete="current-password" autofocus>
           </div>
-          <h1>Regent Properties</h1>
-          <p>Secure Garage Access</p>
-        </div>
-        <div class="card">
-          <div id="loginAlert" class="alert alert-error hidden"></div>
-          <form id="loginForm">
-            <div class="field">
-              <label for="pw">Access Code</label>
-              <input type="password" id="pw" class="input" placeholder="Enter your access code" autocomplete="current-password" autofocus>
-            </div>
-            <button type="submit" class="btn btn-accent" id="loginBtn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-              </svg>
-              Authenticate
-            </button>
-          </form>
-        </div>
+          <button type="submit" class="btn btn-a" id="loginBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Authenticate
+          </button>
+        </form>
+        <div id="attemptsInfo" class="attempts-info hidden"></div>
       </div>
     </div>
+  </div>
 
-    <!-- ===== DASHBOARD ===== -->
-    <div id="dashView" class="screen hidden">
-      <div class="dashboard">
-        <div class="topbar">
-          <h2>Garage Control</h2>
-          <button class="btn-ghost" id="logoutBtn">Sign Out</button>
+  <!-- DASHBOARD -->
+  <div id="dashView" class="screen hidden">
+    <div class="dash">
+      <div class="topbar">
+        <h2>Garage Control</h2>
+        <div class="top-actions">
+          <button class="btn-g" id="debugToggle" title="Debug Panel">Debug</button>
+          <button class="btn-g danger" id="logoutBtn">Sign Out</button>
         </div>
+      </div>
 
-        <div class="status-pill">
-          <span id="statusDot" class="status-dot waiting"></span>
-          <span id="statusLabel">Ready</span>
-        </div>
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="control">Control</button>
+        <button class="tab" data-tab="activity">Activity</button>
+        <button class="tab" data-tab="identity">Identity</button>
+      </div>
 
-        <div class="control-card">
-          <div class="door-visual">
-            <div id="doorFrame" class="door-frame">
-              <div id="doorPanel" class="door-panel">
-                <div class="door-handle"></div>
-              </div>
-            </div>
-            <div class="door-ground"></div>
+      <!-- Status -->
+      <div class="status-pill">
+        <span id="sDot" class="dot dot-warn"></span>
+        <span id="sLabel">Connecting...</span>
+      </div>
+
+      <!-- TAB: Control -->
+      <div id="tab-control" class="tab-content">
+        <div class="ctrl">
+          <div class="door-vis">
+            <div id="doorFrame" class="door-f"><div id="doorPanel" class="door-p"><div class="door-h"></div></div></div>
+            <div class="door-g"></div>
           </div>
-
-          <h3 class="control-title">Garage Door</h3>
-          <p class="control-sub">Tap the button to send an open command</p>
-
-          <button id="garageBtn" class="btn-garage btn-open">
+          <h3>Garage Door</h3>
+          <p class="sub">Tap the button to send an open command</p>
+          <button id="garageBtn" class="btn-big open">
             <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
             Open Garage
           </button>
-
           <div id="toast" class="toast"></div>
+          <div id="stepsContainer" class="steps hidden"></div>
         </div>
-
-        <div class="log-card">
-          <div class="log-header">Recent Activity</div>
-          <div id="logList"><p class="log-empty">No activity yet</p></div>
-        </div>
-
-        <div class="footer">Regent Properties &middot; Secure Access</div>
       </div>
+
+      <!-- TAB: Activity -->
+      <div id="tab-activity" class="tab-content hidden">
+        <div class="log-c">
+          <div class="log-h">Action History</div>
+          <div id="logList"><p class="log-e">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- TAB: Identity -->
+      <div id="tab-identity" class="tab-content hidden">
+        <div class="id-card">
+          <div class="log-h">Session Identity</div>
+          <div id="identityContent"><p class="log-e">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Debug Panel (hidden by default) -->
+      <div id="debugPanel" class="debug-panel hidden">
+        <div class="log-h">System Debug</div>
+        <div id="debugSystem"></div>
+        <div class="log-h" style="margin-top:12px">Server Logs</div>
+        <div class="debug-log" id="debugLogs"></div>
+      </div>
+
+      <div class="footer">Regent Properties &middot; Secure Access v2.0</div>
     </div>
   </div>
+</div>
 
-  <!-- Confirm Modal -->
-  <div id="confirmOverlay" class="overlay">
-    <div class="modal">
-      <div class="modal-icon">
-        <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
-      </div>
-      <h3>Open Garage Door?</h3>
-      <p>This will send an open command to the garage.</p>
-      <div class="modal-actions">
-        <button class="btn btn-flat" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-accent" onclick="doOpen()">Confirm</button>
-      </div>
+<!-- Confirm Modal -->
+<div id="confirmOverlay" class="overlay">
+  <div class="modal">
+    <div class="modal-icon"><svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg></div>
+    <h3>Open Garage Door?</h3>
+    <p>This will send an open command to the garage system.</p>
+    <div class="modal-acts">
+      <button class="btn btn-f" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-a" onclick="doOpen()">Confirm</button>
     </div>
   </div>
+</div>
 
-  <script>
-    // ===== CONFIG =====
-    // SHA-256 hash of the access password (default: "regent2026")
-    // To change: run in browser console: crypto.subtle.digest('SHA-256', new TextEncoder().encode('YOUR_PASSWORD')).then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
-    const PASSWORD_HASH = '096fdb3d705113046663c019d57d82c14191fd4b37e9efb1152a7cc39fb5ca9f';
+<script>
+// ===== CONFIG =====
+// SHA-256 hash of the access password (default: "regent2026")
+// To change: run in console: crypto.subtle.digest('SHA-256', new TextEncoder().encode('YOUR_PASSWORD')).then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+const PASSWORD_HASH = '096fdb3d705113046663c019d57d82c14191fd4b37e9efb1152a7cc39fb5ca9f';
 
-    // Backend API URL - set this to your backend server if running the full-stack version
-    // Leave empty for standalone mode (logs actions locally only)
-    const API_URL = '';
+// Backend URL - auto-detected or set manually. Empty = standalone mode.
+let BACKEND = '';
+let MODE = 'standalone'; // 'standalone' or 'server'
+const LOCAL_LOG_KEY = 'garageLog';
+const localLog = JSON.parse(localStorage.getItem(LOCAL_LOG_KEY) || '[]');
 
-    // ===== STATE =====
-    let authenticated = false;
-    const activityLog = JSON.parse(localStorage.getItem('garageLog') || '[]');
+async function hashPw(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+}
 
-    // ===== AUTH =====
-    async function hashPassword(pw) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-      return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
-    }
+// ===== API (dual mode) =====
+async function api(method, path, body) {
+  if (MODE === 'server' && BACKEND) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(BACKEND + path, opts);
+    const data = await res.json();
+    data._status = res.status;
+    return data;
+  }
+  // Standalone fallback
+  return null;
+}
 
-    function showDash() {
-      document.getElementById('loginView').classList.add('hidden');
-      document.getElementById('dashView').classList.remove('hidden');
-      renderLog();
-      updateStatus();
-    }
+// Detect backend
+async function detectBackend() {
+  // Check URL params for backend
+  const params = new URLSearchParams(window.location.search);
+  const backendParam = params.get('backend');
+  if (backendParam) {
+    try {
+      const res = await fetch(backendParam + '/api/health', { credentials: 'include' });
+      if (res.ok) { BACKEND = backendParam; MODE = 'server'; return; }
+    } catch (e) {}
+  }
+  // Check if same-origin server exists
+  try {
+    const res = await fetch('/api/health');
+    if (res.ok) { BACKEND = ''; MODE = 'server'; return; }
+  } catch (e) {}
+  MODE = 'standalone';
+}
 
-    function showLogin() {
-      document.getElementById('dashView').classList.add('hidden');
-      document.getElementById('loginView').classList.remove('hidden');
-      document.getElementById('pw').value = '';
-    }
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.remove('hidden');
+    if (tab.dataset.tab === 'activity') loadLog();
+    if (tab.dataset.tab === 'identity') loadIdentity();
+  });
+});
 
-    // Check session
-    (function init() {
-      if (sessionStorage.getItem('authed') === '1') {
-        authenticated = true;
-        showDash();
-      }
-    })();
+// ===== AUTH =====
+async function checkAuth() {
+  await detectBackend();
+  if (MODE === 'server') {
+    try {
+      const data = await api('GET', '/api/auth-check');
+      if (data && data.authenticated) { showDash(); return; }
+    } catch (e) {}
+  } else {
+    // Standalone: check sessionStorage
+    if (sessionStorage.getItem('authed') === '1') { showDash(); return; }
+  }
+}
 
-    // Login form
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const pw = document.getElementById('pw').value;
-      const alert = document.getElementById('loginAlert');
-      const btn = document.getElementById('loginBtn');
+function showDash() {
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('dashView').classList.remove('hidden');
+  checkHealth();
+  setInterval(checkHealth, 30000);
+}
 
-      if (!pw) return;
+function showLogin() {
+  document.getElementById('dashView').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+  document.getElementById('pw').value = '';
+}
 
-      btn.disabled = true;
-      alert.classList.add('hidden');
+// Login form
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pw = document.getElementById('pw').value;
+  const alertEl = document.getElementById('loginAlert');
+  const btn = document.getElementById('loginBtn');
+  const attInfo = document.getElementById('attemptsInfo');
+  if (!pw) return;
 
-      const hash = await hashPassword(pw);
-      if (hash === PASSWORD_HASH) {
-        authenticated = true;
-        sessionStorage.setItem('authed', '1');
+  btn.disabled = true;
+  alertEl.classList.add('hidden');
+  attInfo.classList.add('hidden');
+
+  if (MODE === 'server') {
+    try {
+      const data = await api('POST', '/api/login', { password: pw });
+      if (data && data.success) {
         showDash();
       } else {
-        alert.textContent = 'Invalid access code';
-        alert.classList.remove('hidden');
+        alertEl.textContent = (data && data.error) || 'Invalid access code';
+        alertEl.className = 'alert alert-err';
+        alertEl.classList.remove('hidden');
+        if (data && data.attemptsRemaining !== undefined) {
+          attInfo.textContent = data.hint || `${data.attemptsRemaining} attempts remaining`;
+          attInfo.classList.remove('hidden');
+        }
+        if (data && data.remainingMinutes) {
+          alertEl.className = 'alert alert-warn';
+          attInfo.textContent = `Locked for ${data.remainingMinutes} more minute(s)`;
+          attInfo.classList.remove('hidden');
+        }
         document.getElementById('pw').value = '';
         document.getElementById('pw').focus();
       }
-
-      btn.disabled = false;
-    });
-
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      authenticated = false;
-      sessionStorage.removeItem('authed');
-      showLogin();
-    });
-
-    // ===== GARAGE CONTROL =====
-    document.getElementById('garageBtn').addEventListener('click', () => {
-      document.getElementById('confirmOverlay').classList.add('open');
-    });
-
-    function closeModal() {
-      document.getElementById('confirmOverlay').classList.remove('open');
+    } catch (err) {
+      alertEl.textContent = 'Connection error. Is the server running?';
+      alertEl.className = 'alert alert-err';
+      alertEl.classList.remove('hidden');
     }
-
-    async function doOpen() {
-      closeModal();
-
-      const btn = document.getElementById('garageBtn');
-      const toast = document.getElementById('toast');
-      const frame = document.getElementById('doorFrame');
-      const panel = document.getElementById('doorPanel');
-
-      // Sending state
-      btn.disabled = true;
-      btn.classList.add('sending');
-      btn.innerHTML = '<svg viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A8 8 0 0012 4zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A8 8 0 0012 20v3l4-4-4-4v3z"/></svg> Sending...';
-      frame.classList.add('active');
-      toast.classList.remove('show');
-
-      let success = false;
-      let msg = '';
-
-      try {
-        if (API_URL) {
-          // Full-stack mode: call the backend
-          const res = await fetch(API_URL + '/api/garage/open', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include'
-          });
-          const data = await res.json();
-          success = data.success;
-          msg = data.message || (success ? 'Command sent.' : 'Failed.');
-        } else {
-          // Standalone mode: simulate the action
-          await new Promise(r => setTimeout(r, 1500));
-          success = true;
-          msg = 'Open command logged. Connect a backend to control STRATIS.';
-        }
-      } catch (err) {
-        success = false;
-        msg = 'Connection error: ' + err.message;
-      }
-
-      // Log
-      const entry = {
-        action: 'open',
-        time: new Date().toISOString(),
-        success
-      };
-      activityLog.unshift(entry);
-      if (activityLog.length > 50) activityLog.length = 50;
-      localStorage.setItem('garageLog', JSON.stringify(activityLog));
-
-      // Animate door
-      if (success) {
-        panel.classList.add('opening');
-        btn.classList.remove('sending');
-        btn.classList.add('done');
-        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Sent';
-        toast.className = 'toast toast-ok show';
-        toast.textContent = msg;
-      } else {
-        btn.classList.remove('sending');
-        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
-        toast.className = 'toast toast-err show';
-        toast.textContent = msg;
-      }
-
-      renderLog();
-
-      // Reset after 4s
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.className = 'btn-garage btn-open';
-        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
-        frame.classList.remove('active');
-        panel.classList.remove('opening');
-        toast.classList.remove('show');
-      }, 4000);
+  } else {
+    // Standalone auth via SHA-256 hash
+    const hash = await hashPw(pw);
+    if (hash === PASSWORD_HASH) {
+      sessionStorage.setItem('authed', '1');
+      showDash();
+    } else {
+      alertEl.textContent = 'Invalid access code';
+      alertEl.className = 'alert alert-err';
+      alertEl.classList.remove('hidden');
+      document.getElementById('pw').value = '';
+      document.getElementById('pw').focus();
     }
+  }
+  btn.disabled = false;
+});
 
-    // ===== STATUS =====
-    function updateStatus() {
-      const dot = document.getElementById('statusDot');
-      const label = document.getElementById('statusLabel');
-      if (API_URL) {
-        dot.classList.remove('waiting');
-        label.textContent = 'Connected';
-      } else {
-        dot.classList.add('waiting');
-        label.textContent = 'Standalone Mode';
-      }
-    }
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  if (MODE === 'server') await api('POST', '/api/logout');
+  sessionStorage.removeItem('authed');
+  showLogin();
+});
 
-    // ===== LOG =====
-    function renderLog() {
-      const el = document.getElementById('logList');
-      const items = activityLog.slice(0, 10);
-      if (items.length === 0) {
-        el.innerHTML = '<p class="log-empty">No activity yet</p>';
+// ===== HEALTH =====
+async function checkHealth() {
+  const dot = document.getElementById('sDot');
+  const label = document.getElementById('sLabel');
+  if (MODE === 'server') {
+    try {
+      const data = await api('GET', '/api/health');
+      if (data && data.status === 'ok') {
+        dot.className = 'dot ' + (data.stratisConfigured ? 'dot-ok' : 'dot-warn');
+        label.textContent = data.stratisConfigured ? 'STRATIS Connected' : 'Server Ready (STRATIS not configured)';
         return;
       }
-      el.innerHTML = items.map(e => {
-        const d = new Date(e.time);
-        const t = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const date = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        return `<div class="log-item">
-          <span class="log-dot ${e.success ? 'log-dot-ok' : 'log-dot-err'}"></span>
-          <span class="log-label">Garage ${e.action}${e.success ? '' : ' (failed)'}</span>
-          <span class="log-time">${date} ${t}</span>
-        </div>`;
-      }).join('');
+    } catch (e) {}
+    dot.className = 'dot dot-err';
+    label.textContent = 'Server unreachable';
+  } else {
+    dot.className = 'dot dot-warn';
+    label.textContent = 'Standalone Mode (no backend)';
+  }
+}
+
+// ===== GARAGE =====
+document.getElementById('garageBtn').addEventListener('click', () => {
+  document.getElementById('confirmOverlay').classList.add('open');
+});
+function closeModal() { document.getElementById('confirmOverlay').classList.remove('open'); }
+
+async function doOpen() {
+  closeModal();
+  const btn = document.getElementById('garageBtn');
+  const toast = document.getElementById('toast');
+  const frame = document.getElementById('doorFrame');
+  const panel = document.getElementById('doorPanel');
+  const stepsEl = document.getElementById('stepsContainer');
+
+  btn.disabled = true;
+  btn.className = 'btn-big sending';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A8 8 0 0012 4zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A8 8 0 0012 20v3l4-4-4-4v3z"/></svg> Sending...';
+  frame.classList.add('glow');
+  toast.classList.remove('show');
+  stepsEl.classList.add('hidden');
+
+  if (MODE === 'server') {
+    try {
+      const data = await api('POST', '/api/garage/open');
+
+      if (data && data.steps && data.steps.length > 0) {
+        stepsEl.classList.remove('hidden');
+        stepsEl.innerHTML = data.steps.map(s => {
+          const icon = s.status === 'ok' ? 'step-ok' : s.status === 'error' ? 'step-err' : s.status === 'skipped' ? 'step-skip' : 'step-wait';
+          const sym = s.status === 'ok' ? '&#10003;' : s.status === 'error' ? '&#10007;' : s.status === 'skipped' ? '&#8212;' : '&#8226;';
+          return `<div class="step"><span class="step-icon ${icon}">${sym}</span><span>${s.step.replace(/_/g,' ')}${s.error ? ': '+s.error : ''}</span></div>`;
+        }).join('');
+      }
+
+      if (data && data.screenshots && data.screenshots.length > 0) {
+        stepsEl.innerHTML += '<div class="log-h" style="margin-top:12px">Screenshots</div><div class="ss-grid">' +
+          data.screenshots.map(ss => `<div class="ss-thumb" onclick="window.open('${ss.url}')"><div class="ss-label">${ss.name}</div></div>`).join('') + '</div>';
+      }
+
+      if (data && data.success) {
+        panel.classList.add('up');
+        btn.className = 'btn-big done';
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Sent';
+        toast.className = 'toast toast-ok show';
+        toast.textContent = data.message || 'Command sent.';
+        if (data.actionId) toast.textContent += ` [${data.actionId}]`;
+        if (data.duration) toast.textContent += ` (${data.duration}ms)`;
+      } else {
+        btn.className = 'btn-big open';
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
+        toast.className = 'toast toast-err show';
+        toast.textContent = (data && (data.message || data.error)) || 'Failed.';
+      }
+    } catch (err) {
+      btn.className = 'btn-big open';
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
+      toast.className = 'toast toast-err show';
+      toast.textContent = 'Connection error: ' + err.message;
     }
-  </script>
+  } else {
+    // Standalone mode
+    await new Promise(r => setTimeout(r, 1200));
+    const entry = { action: 'open', timestamp: new Date().toISOString(), status: 'success', mode: 'standalone' };
+    localLog.unshift(entry);
+    if (localLog.length > 50) localLog.length = 50;
+    localStorage.setItem(LOCAL_LOG_KEY, JSON.stringify(localLog));
+    panel.classList.add('up');
+    btn.className = 'btn-big done';
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Sent';
+    toast.className = 'toast toast-ok show';
+    toast.textContent = 'Command logged (standalone). Connect a backend for STRATIS control.';
+  }
+
+  // Reset after 5s
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.className = 'btn-big open';
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg> Open Garage';
+    frame.classList.remove('glow');
+    panel.classList.remove('up');
+  }, 5000);
+}
+
+// ===== ACTIVITY LOG =====
+function renderLogEntries(entries) {
+  return entries.map(e => {
+    const d = new Date(e.timestamp);
+    const t = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    const dt = d.toLocaleDateString([], { month:'short', day:'numeric' });
+    const dc = e.status === 'success' ? 'log-d-ok' : e.status === 'error' || e.status === 'failed' ? 'log-d-err' : 'log-d-pend';
+    return `<div class="log-i"><span class="log-d ${dc}"></span><span class="log-l">Garage ${e.action} - ${e.status} ${e.duration ? '('+e.duration+'ms)' : ''} ${e.mode === 'standalone' ? '(local)' : ''}</span><span class="log-t">${dt} ${t}</span></div>`;
+  }).join('');
+}
+
+async function loadLog() {
+  const el = document.getElementById('logList');
+  if (MODE === 'server') {
+    try {
+      const data = await api('GET', '/api/garage/log');
+      if (!data || !data.log || data.log.length === 0) { el.innerHTML = '<p class="log-e">No server activity yet</p>'; return; }
+      el.innerHTML = renderLogEntries(data.log);
+    } catch (e) { el.innerHTML = '<p class="log-e">Failed to load server log</p>'; }
+  } else {
+    if (localLog.length === 0) { el.innerHTML = '<p class="log-e">No activity yet</p>'; return; }
+    el.innerHTML = renderLogEntries(localLog.slice(0, 20));
+  }
+}
+
+// ===== IDENTITY =====
+async function loadIdentity() {
+  const el = document.getElementById('identityContent');
+  if (MODE !== 'server') {
+    el.innerHTML = '<p class="log-e">Identity verification requires a backend server. Run the full-stack app to enable this feature.</p>';
+    return;
+  }
+  try {
+    const data = await api('GET', '/api/identity');
+    if (!data || !data.verified) { el.innerHTML = '<p class="log-e">Not verified</p>'; return; }
+    const s = data.session;
+    const sec = data.security;
+    el.innerHTML = `
+      <div class="id-badge ${sec.ipChanged ? 'id-warning' : 'id-verified'}">${sec.ipChanged ? '&#9888; IP Changed' : '&#10003; Verified'}</div>
+      ${sec.warning ? `<div class="alert alert-warn" style="margin-bottom:12px">${sec.warning}</div>` : ''}
+      <div class="debug-row"><span class="debug-key">Session ID</span><span class="debug-val">${s.id}</span></div>
+      <div class="debug-row"><span class="debug-key">Login Time</span><span class="debug-val">${new Date(s.loginTime).toLocaleString()}</span></div>
+      <div class="debug-row"><span class="debug-key">Login IP</span><span class="debug-val">${s.loginIP}</span></div>
+      <div class="debug-row"><span class="debug-key">Current IP</span><span class="debug-val">${s.currentIP}</span></div>
+      <div class="debug-row"><span class="debug-key">IP Match</span><span class="debug-val">${s.ipMatch ? 'Yes' : 'No - SUSPICIOUS'}</span></div>
+      <div class="debug-row"><span class="debug-key">User Agent</span><span class="debug-val" style="font-size:10px;word-break:break-all">${s.userAgent || 'N/A'}</span></div>
+      <div class="debug-row"><span class="debug-key">Last Active</span><span class="debug-val">${new Date(s.lastActive).toLocaleString()}</span></div>
+    `;
+  } catch (e) { document.getElementById('identityContent').innerHTML = '<p class="log-e">Failed to load identity</p>'; }
+}
+
+// ===== DEBUG PANEL =====
+document.getElementById('debugToggle').addEventListener('click', async function() {
+  const panel = document.getElementById('debugPanel');
+  this.classList.toggle('active');
+  panel.classList.toggle('hidden');
+  if (!panel.classList.contains('hidden')) { await loadDebug(); }
+});
+
+async function loadDebug() {
+  try {
+    const [sys, logs] = await Promise.all([api('GET', '/api/debug/system'), api('GET', '/api/debug/logs?limit=50')]);
+    const sysEl = document.getElementById('debugSystem');
+    sysEl.innerHTML = `
+      <div class="debug-row"><span class="debug-key">Uptime</span><span class="debug-val">${sys.uptime}s</span></div>
+      <div class="debug-row"><span class="debug-key">Memory</span><span class="debug-val">${Math.round(sys.memory.rss/1048576)}MB RSS</span></div>
+      <div class="debug-row"><span class="debug-key">Node</span><span class="debug-val">${sys.nodeVersion}</span></div>
+      <div class="debug-row"><span class="debug-key">STRATIS</span><span class="debug-val">${sys.env.stratisConfigured ? 'Configured' : 'Not configured'}</span></div>
+      <div class="debug-row"><span class="debug-key">Actions</span><span class="debug-val">${sys.env.actionCount}</span></div>
+      <div class="debug-row"><span class="debug-key">Sessions</span><span class="debug-val">${sys.env.activeSessions}</span></div>
+      <div class="debug-row"><span class="debug-key">Log Entries</span><span class="debug-val">${sys.env.logEntries}</span></div>
+    `;
+    const logsEl = document.getElementById('debugLogs');
+    logsEl.innerHTML = logs.logs.map(l => `<div class="debug-entry ${l.level}">[${l.timestamp.substring(11,19)}] [${l.level}] [${l.category}] ${l.message}</div>`).join('');
+  } catch (e) { document.getElementById('debugSystem').innerHTML = '<p class="log-e">Failed to load debug info</p>'; }
+}
+
+// Init
+checkAuth();
+</script>
 </body>
 </html>
